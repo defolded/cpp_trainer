@@ -1,21 +1,28 @@
 #include <array>
+#include <string_view>
 #include <iostream>
 
-template<typename T, std::size_t U>
-void printArray(const std::array<T, U>& inputArray) {
-    for (T val : inputArray) {
-        std::cout << val;
-    }
-    std::cout << "\narray done\n";
-}
+struct Item {
+    std::string_view name{};
+    int gold{};
+};
 
 int main()
 {
-    constexpr std::array arr1 { 1, 4, 9, 16 };
-    printArray(arr1);
+    using namespace std::literals;
+    constexpr std::array<Item, 4> arr{
+            {
 
-    constexpr std::array arr2 { 'h', 'e', 'l', 'l', 'o' };
-    printArray(arr2);
+                    {"sword"sv, 5},
+                    {"dagger"sv, 3},
+                    {"club"sv, 2},
+                    {"spear"sv, 7}
+            }
+    };
+
+    for (const auto& item : arr) {
+        std::cout << "A " << item.name << " costs " << item.gold << " gold." << std::endl;
+    }
 
     return 0;
 }
