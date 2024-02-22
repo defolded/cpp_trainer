@@ -3,19 +3,19 @@
 
 int main()
 {
-    int numbers[] { 0, 1, 4, 9 };
-    int x{0};
+    constexpr int numbers[] { 0, 1, 4, 9 };
 
     while (true) {
         std::cout << "Enter a single digit integer, or -1 to quit: ";
+        int x{};
         std::cin >> x;
 
         if (x == -1) {
             std::cout << "Bye\n";
             break;
-        } else if (x < std::ssize(numbers)) {
-            for (auto i{0}; i < std::ssize(numbers); ++i) {
-                if (x == numbers[i]) {
+        } else if (x <= numbers[std::ssize(numbers)-1]) {
+            for (auto i : numbers) {
+                if (x == i) {
                     std::cout << x << " is a perfect square\n";
                     break;
                 } else {
