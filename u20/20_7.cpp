@@ -2,19 +2,19 @@
 #include <vector>
 #include "../Random.h"
 
-int main()
-{
-    const int random = Random::get(2, 4);
+static std::vector<int> v{};
+static int count{};
+const int random = Random::get(2, 4);
+static int guess{};
 
+void generateNumbers()
+{
     std::cout << "Start where?\n";
     int start{};
     std::cin >> start;
 
     std::cout << "How many?\n";
-    int count{};
     std::cin >> count;
-
-    std::vector<int> v{};
 
     for (int i { count }; i > 0; --i)
     {
@@ -23,41 +23,56 @@ int main()
     }
 
     std::cout << "I generated " << count << " square numbers. Do you know what each number is after multiplying it by " << random << " ?\n";
-    std::cout << " > ";
-    int guess{};
-    std::cin >> guess;
+}
 
-    while (true)
-    {
-        auto val = std::find(v.begin(), v.end(), guess);
-        if (val == std::end(v))
+// Finds the value in @numbers that is closest to @guess.
+int findClosestNumber()
+{
+    return *std::min_element(v.begin(), v.end(), [=](int a, int b) {
+        return std::abs(a - guess) < std::abs(b - guess);
+    });
+}
+
+bool getResults(int& num)
+{
+    auto val = std::find(v.begin(), v.end(), num);
+
+    if (val != std::end(v)) {
+        v.erase(val);
+        if (v.empty())
         {
-            v.erase(val);
-            if (!v.empty())
-            {
-                std::cout << "Nice! " << v.size() << " number(s) left.";
-            } else {
-                std::cout << "Nice! You found all numbers, good job!\n";
-                break;
-            }
+            std::cout << "Nice! You found all numbers, good job!\n";
+            return false;
+        } else {
+            std::cout << "Nice! " << v.size() << " number(s) left.\n";
+            return true;
         }
-//        else {
-//            auto copy { v };
-//            for (auto& n : copy)
-//                n %= guess;
-//
-//            auto minElement = std::min_element(copy.begin(), copy.end(), [](const auto& a, const auto& b) {
-//                return a < b;
-//            });
-//
-//            if (*minElement <= 4)
-//            {
-//                std::cout << guess << " is wrong! Try " << v.at(*minElement) << " next time.\n";
-//                break;
-//            }
-//        }
+    } else {
+
+        if (std::abs(findClosestNumber() - guess) <= 4)
+        {
+            std::cout << num << " is wrong! Try " << *std::find(v.begin(), v.end(), findClosestNumber()) << " next time.\n";
+            return false;
+        } else {
+            std::cout << num << " is wrong!\n";
+            return false;
+        }
     }
 
+}
+
+int main()
+{
+    generateNumbers();
+
+    do {
+        std::cout << " > ";
+        std::cin >> guess;
+
+        if (!getResults(guess))
+            break;
+
+    } while (true);
 
     return 0;
 }
