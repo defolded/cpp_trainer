@@ -18,7 +18,7 @@ void generateNumbers()
 
     for (int i { count }; i > 0; --i)
     {
-        v.push_back( (start*start) * 4 );
+        v.push_back( (start*start) * random );
         ++start;
     }
 
