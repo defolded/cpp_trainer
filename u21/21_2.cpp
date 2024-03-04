@@ -1,22 +1,32 @@
 #include <iostream>
+#include <numeric>
 
 class Fraction {
 public:
     Fraction(const int n, const int d) :
         m_numerator { n }, m_denominator { d }
-    {}
-
-    void print() const
     {
+        reduce();
+    }
+
+    void print() const {
         std::cout << m_numerator << '/' << m_denominator << '\n';
+    }
+
+    void reduce()
+    {
+        int gcd { std::gcd(m_numerator, m_denominator) };
+        if (gcd)
+        {
+            m_numerator /= gcd;
+            m_denominator /= gcd;
+        }
     }
 
     friend Fraction operator*(const Fraction& f1, const Fraction& f2);
     friend Fraction operator*(int value, const Fraction& f1);
     friend Fraction operator*(const Fraction& f1, int value);
 
-    [[nodiscard]] int getNumerator() const { return m_numerator; }
-    [[nodiscard]] int getDenominator() const { return m_denominator; }
 private:
     int m_numerator{};
     int m_denominator{};
@@ -56,6 +66,9 @@ int main()
 
     Fraction f6{ Fraction{1, 2} * Fraction{2, 3} * Fraction{3, 4} };
     f6.print();
+
+    Fraction f7{0, 6};
+    f7.print();
 
     return 0;
 }
