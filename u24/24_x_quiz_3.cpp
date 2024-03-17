@@ -16,7 +16,7 @@ namespace Potion
 
 
     constexpr std::array<int, max_potions> chanceToFind { 20, 30, 12, 50 };
-    constexpr std::array<std::string_view, max_potions> potions { "regen", "amplify", "invisibility", "poison" };
+    constexpr std::array<std::string_view, max_potions> potions { "Regen", "Amplify", "Invisibility", "Poison" };
 }
 
 namespace Enemy
@@ -26,19 +26,17 @@ namespace Enemy
         orc,
         mage,
         dragon,
-        garfield,
         kung_fu_panda,
-        yana,
         max_enemies
     };
 
-    constexpr std::array types { orc, mage, dragon, garfield, kung_fu_panda, yana };
+    constexpr std::array types { orc, mage, dragon, kung_fu_panda };
 
 
-    constexpr std::array<int, max_enemies> chanceToFlee { 50, 40, 15, 100, 5 };
-    constexpr std::array<int, max_enemies> health { 5, 2, 10, 1, 15 };
-    constexpr std::array<int, max_enemies> damage { 1, 3, 5, 0, 7 };
-    constexpr std::array<std::string_view, max_enemies> enemies { "Orc", "Mage", "Dragon", "Garfield", "Kung Fu Panda" };
+    constexpr std::array<int, max_enemies> chanceToFlee { 50, 40, 15, 5 };
+    constexpr std::array<int, max_enemies> health { 5, 2, 10, 15 };
+    constexpr std::array<int, max_enemies> damage { 1, 3, 5, 7 };
+    constexpr std::array<std::string_view, max_enemies> enemies { "Orc", "Mage", "Dragon", "Kung Fu Panda" };
 }
 
 class Monster;
@@ -80,57 +78,65 @@ class Player : public Creature
 {
 private:
     int m_gold{};
+    bool m_won{};
+    bool m_lost{};
+    std::vector<std::string_view> m_inventory{};
 public:
     Player()
         : Creature(10, 3),
-        m_gold{0}
+        m_gold{0}, m_won{false}, m_lost{false}
     {
     }
 
     int getGold() const { return m_gold; }
+    bool getWon() const { return m_won; }
+    bool getLost() const { return m_lost; }
+    std::vector<std::string_view>& getInventory() { return m_inventory; }
+    std::string_view getInventory(int index) { return m_inventory.at(index); }
 
     void setGold(int g) { m_gold += g; }
+    void setWon() { m_won = true; }
+    void setLost() { m_lost = true; }
+    void addItem(std::string_view item) { m_inventory.emplace_back(item); }
+    void removeItem(int index) { m_inventory.erase(m_inventory.begin()+index); }
 };
 
 void findPotion(Player& player)
 {
     int lucky_number{ Random::get(1, 100) };
-    std::cout << lucky_number;
-    std::vector<std::string_view> inventory{};
+
 
     for (int i{0}; i < Potion::chanceToFind.size(); ++i)
     {
-        for (auto n : Potion::chanceToFind)
+        if (lucky_number <= Potion::chanceToFind.at(i))
         {
-            if (lucky_number <= n)
-            {
-                inventory.emplace_back(Potion::potions.at(i));
-            }
+            player.addItem(Potion::potions.at(i));
         }
     }
 
-    for (auto p : inventory)
+    for (auto p : player.getInventory())
         std::cout << "You've found " << p << " potion.\n";
+
 }
 
-void lose(const Player& player) {
+void lose(Player& player) {
     std::cout << "You died with " << player.getGold() << " gold.\n";
+    player.setLost();
 }
 
 void lose(const Monster& enemy, Player& player) {
-    if (enemy.getName() == "Garfield")
-    {
-        std::cout << "mrrrr meow";
-    } else {
-        std::cout << "You killed " << enemy.getName() << "!\n";
+    std::cout << "You killed " << enemy.getName() << "!\n\n";
 
-        int goldReward{ Random::get(0,enemy.getFleeChance()) };
+    int goldReward{ Random::get(0,enemy.getFleeChance()) };
 
-        std::cout << "You found " << goldReward << " gold.\n";
-        player.setGold(goldReward);
+    std::cout << "You found " << goldReward << " gold.\n";
+    player.setGold(goldReward);
 
-        findPotion(player);
-    }
+    int h {Random::get(2, 3)};
+    std::cout << "You've restored " << h << " hp.\n";
+    player.setHp(player.getHp() + h);
+
+    findPotion(player);
 }
 
 void hit(Monster& enemy, Player& player)
@@ -161,7 +167,7 @@ void fight(Player& player, Monster& enemy)
     }
 }
 
-void run(Player& player, Monster& enemy)
+bool run(Player& player, Monster& enemy)
 {
     if (enemy.getFleeChance() < Random::get(1, 100))
     {
@@ -170,40 +176,78 @@ void run(Player& player, Monster& enemy)
         if (player.getHp() < 0)
         {
             lose(player);
+            return false;
         } else {
-            // TODO: call Run or Fight if played fails to flee
-            std::cout << "\n\n\n*NOT IMPLEMENTED*\n\n\n";
+            std::cout << "You have " << player.getHp() << " hp.\n\n";
+            return false;
         }
     } else {
         std::cout << "You successfully fled.\n";
+        return true;
     }
 }
 
 void gameloop(Player& player)
 {
-    while (player.getHp() > 0) {
-        Monster enemy = Monster(Random::get(0, (Enemy::EnemyType::max_enemies - 1)));
-        std::cout << "You've encountered " << enemy.getName() << ".\n";
-        std::cout << "(R)un or (F)ight: ";
-        char c{};
-        std::cin >> c;
+    bool condition {};
 
-        switch (c) {
-            case 'r':
-                run(player, enemy);
-                break;
-            case 'f':
-                if (enemy.getName() == "Garfield")
-                {
-                    lose(player);
-                } else {
-                    fight(player, enemy);
-                }
-                break;
-            default:
+    while (!player.getWon() && !player.getLost()) {
+        condition = true;
+        char c{};
+
+        Monster enemy = Monster(Random::get(0, (Enemy::EnemyType::max_enemies - 1)));
+        std::cout << "\n\nYou've encountered " << enemy.getName() << ".\n";
+
+        while (condition)
+        {
+            if (!player.getInventory().empty())
+            {
+                std::cout << "You have " << player.getInventory().size() << " potions, would you like to consume them? (type \"y\" or \"n\")\n";
+
                 std::cin >> c;
-                break;
+
+                switch(c)
+                {
+                    case 'y':
+                        std::cout << "Your potions are:\n";
+                        for (int i{0}; i < player.getInventory().size(); ++i)
+                        {
+                            std::cout << "[" << i << "] " << player.getInventory(i) << '\n';
+                        }
+                        break;
+                    case 'n':
+                        continue;
+                    default:
+                        continue;
+                }
+            }
+            std::cout << "(R)un or (F)ight: ";
+            std::cin >> c;
+
+            switch (c)
+            {
+                case 'r':
+                    if (run(player, enemy))
+                    {
+                        condition = false;
+                    }
+                    break;
+                case 'f':
+                    if (enemy.getName() == "Garfield")
+                    {
+                        lose(player);
+                        condition = false;
+                    } else {
+                        fight(player, enemy);
+                        condition = false;
+                    }
+                    break;
+                default:
+                    std::cin >> c;
+                    break;
+            }
         }
+
     }
 }
 
