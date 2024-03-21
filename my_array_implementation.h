@@ -75,15 +75,13 @@ public:
         return *this;
     }
 
-    const int& length()
+    const int length() const
     {
         return m_length;
     }
 
-    T operator[] (int index)
-    {
-        return m_array[index];
-    }
+    const T& operator[] (int index) const { return m_array[index]; }
+    T& operator[] (int index)  { return m_array[index]; }
 };
 
 
