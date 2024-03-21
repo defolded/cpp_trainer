@@ -68,7 +68,23 @@ public:
         return out;
     }
 
+    int getRadius() const { return m_radius; }
 };
+
+int getLargestRadius(const std::vector<Shape*>& v)
+{
+    int largestIndex{};
+
+    for (const auto* sh : v)
+    {
+        if (const auto * c{ dynamic_cast<const Circle*>(sh) })
+        {
+            largestIndex = std::max(largestIndex, c->getRadius());
+        }
+    }
+
+    return largestIndex;
+}
 
 int main()
 {
@@ -82,7 +98,7 @@ int main()
     for (const auto* sh : v)
         std::cout << *sh << "\n";
 
-//    std::cout << "The largest radius is: " << getLargestRadius(v) << '\n'; // TODO: write this function
+    std::cout << "The largest radius is: " << getLargestRadius(v) << '\n';
 
     // delete each element in the vector here
     for (const auto* sh : v)
