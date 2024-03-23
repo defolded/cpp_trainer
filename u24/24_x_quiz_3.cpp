@@ -12,9 +12,6 @@ namespace Potion
         max_potions
     };
 
-    constexpr std::array types { regen, amplify, invisibility, poison };
-
-
     constexpr std::array<int, max_potions> chanceToFind { 20, 30, 12, 50 };
     constexpr std::array<std::string_view, max_potions> potions { "Regen", "Amplify", "Invisibility", "Poison" };
 }
@@ -30,29 +27,25 @@ namespace Enemy
         max_enemies
     };
 
-    constexpr std::array types { orc, mage, dragon, kung_fu_panda };
-
-
     constexpr std::array<int, max_enemies> chanceToFlee { 50, 40, 15, 5 };
     constexpr std::array<int, max_enemies> health { 5, 2, 10, 15 };
     constexpr std::array<int, max_enemies> damage { 1, 3, 5, 7 };
     constexpr std::array<std::string_view, max_enemies> enemies { "Orc", "Mage", "Dragon", "Kung Fu Panda" };
 }
 
-class Monster;
-
 class Creature
 {
 protected:
     int m_health{};
     int m_damage_dealt{};
+
 public:
     Creature(int health, int damage_dealt)
         : m_health{health}, m_damage_dealt{damage_dealt}
     {}
 
-    int getHp() const { return m_health; }
-    int getDmg() const { return m_damage_dealt; }
+    [[nodiscard]] int getHp() const { return m_health; }
+    [[nodiscard]] int getDmg() const { return m_damage_dealt; }
 
     void setHp(int n) { m_health = n; }
 };
@@ -62,16 +55,16 @@ class Monster : public Creature
 private:
     std::string m_name{};
     int m_flee_chance{};
+
 public:
     explicit Monster(const int id)
         : Creature(Enemy::health.at(id), Enemy::damage.at(id)),
-          m_name{Enemy::enemies.at(id)},
-          m_flee_chance{Enemy::chanceToFlee.at(id)}
-    {
-    }
+        m_name{Enemy::enemies.at(id)},
+        m_flee_chance{Enemy::chanceToFlee.at(id)}
+    {}
 
-    std::string_view getName() const { return m_name; }
-    int getFleeChance() const { return m_flee_chance; }
+    [[nodiscard]] std::string_view getName() const { return m_name; }
+    [[nodiscard]] int getFleeChance() const { return m_flee_chance; }
 };
 
 class Player : public Creature
@@ -85,18 +78,18 @@ public:
     Player()
         : Creature(10, 3),
         m_gold{0}, m_won{false}, m_lost{false}
-    {
-    }
+    {}
 
-    int getGold() const { return m_gold; }
-    bool getWon() const { return m_won; }
-    bool getLost() const { return m_lost; }
+    [[nodiscard]] int getGold() const { return m_gold; }
+    [[nodiscard]] bool getWon() const { return m_won; }
+    [[nodiscard]] bool getLost() const { return m_lost; }
     std::vector<std::string_view>& getInventory() { return m_inventory; }
     std::string_view getInventory(int index) { return m_inventory.at(index); }
 
     void setGold(int g) { m_gold += g; }
     void setWon() { m_won = true; }
     void setLost() { m_lost = true; }
+
     void addItem(std::string_view item) { m_inventory.emplace_back(item); }
     void removeItem(int index) { m_inventory.erase(m_inventory.begin()+index); }
 };
@@ -104,7 +97,6 @@ public:
 void findPotion(Player& player)
 {
     int lucky_number{ Random::get(1, 100) };
-
 
     for (int i{0}; i < Potion::chanceToFind.size(); ++i)
     {
@@ -162,7 +154,9 @@ void fight(Player& player, Monster& enemy)
     if (player.getHp() < 1)
     {
         lose(player);
-    } else if (enemy.getHp() < 1) {
+    }
+    else if (enemy.getHp() < 1)
+    {
         lose(enemy, player);
     }
 }
@@ -177,11 +171,15 @@ bool run(Player& player, Monster& enemy)
         {
             lose(player);
             return false;
-        } else {
+        }
+        else
+        {
             std::cout << "You have " << player.getHp() << " hp.\n\n";
             return false;
         }
-    } else {
+    }
+    else
+    {
         std::cout << "You successfully fled.\n";
         return true;
     }
@@ -189,7 +187,7 @@ bool run(Player& player, Monster& enemy)
 
 void gameloop(Player& player)
 {
-    bool condition {};
+    bool condition{};
 
     while (!player.getWon() && !player.getLost()) {
         condition = true;
@@ -218,7 +216,7 @@ void gameloop(Player& player)
                     case 'n':
                         continue;
                     default:
-                        continue;
+                        break;
                 }
             }
             std::cout << "(R)un or (F)ight: ";
@@ -255,9 +253,16 @@ int main()
 {
 //    std::cout << "Hello traveller. Here stands before you an impossible dungeon. Would you like to enter?\n";
 
-    Player p1{};
+    try
+    {
+        Player p1{};
 
-    gameloop(p1);
+        gameloop(p1);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what();
+    }
 
     return 0;
 }
