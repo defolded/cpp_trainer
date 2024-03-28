@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <initializer_list>
+#include <iostream>
 
 template <typename T>
 class GeniusArray
@@ -80,11 +81,19 @@ public:
         return m_length;
     }
 
-    int binarySearchArr(const int search_val) {
+    void print() const
+    {
+        for (int i{ 0 }; i < m_length; ++i)
+            std::cout << m_array[i] << '\n';
+    }
+
+    int binarySearchArr(const int search_val)
+    {
         int index = 0;
         int max = m_length - 1;
 
-        while (index <= max) {
+        while (index <= max)
+        {
             int mid = ((index + max) / 2);
             if (search_val == m_array[mid])
             {
@@ -102,6 +111,40 @@ public:
 
         return NULL;
     }
+
+    void bubbleSortArrAsc()
+    {
+        for (int i{ 0 }; i < m_length - 1; ++i) {
+            for (int j{ 0 }; j < m_length - i - 1; ++j)
+            {
+                if (m_array[j] > m_array[j + 1])
+                {
+                    auto temp = m_array[j];
+                    m_array[j] = m_array[j + 1];
+                    m_array[j + 1] = temp;
+                }
+            }
+        }
+        std::cout << "Array sorted in ascending order!\n";
+    }
+
+
+    void bubbleSortArrDesc()
+    {
+        for (int i{ 0 }; i < m_length - 1; ++i) {
+            for (int j{ 0 }; j < m_length - i - 1; ++j)
+            {
+                if (m_array[j] < m_array[j + 1])
+                {
+                    auto temp = m_array[j];
+                    m_array[j] = m_array[j + 1];
+                    m_array[j + 1] = temp;
+                }
+            }
+        }
+        std::cout << "Array sorted in ascending order!\n";
+    }
+
 
     const T& operator[] (int index) const { return m_array[index]; }
     T& operator[] (int index)  { return m_array[index]; }
