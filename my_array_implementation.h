@@ -75,9 +75,32 @@ public:
         return *this;
     }
 
-    const int length() const
+    [[nodiscard]] int length() const
     {
         return m_length;
+    }
+
+    int binarySearchArr(const int search_val) {
+        int index = 0;
+        int max = m_length - 1;
+
+        while (index <= max) {
+            int mid = ((index + max) / 2);
+            if (search_val == m_array[mid])
+            {
+                return mid;
+            }
+            else if (search_val < m_array[mid])
+            {
+                max = mid - 1;
+            }
+            else
+            {
+                index = mid + 1;
+            }
+        }
+
+        return NULL;
     }
 
     const T& operator[] (int index) const { return m_array[index]; }
